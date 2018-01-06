@@ -309,8 +309,99 @@ GCP lets you assign [tags](https://cloud.google.com/compute/docs/label-or-tag-re
 
 ## <a id='next-steps'></a>Next Steps
 
-Follow the procedures in [Deploying BOSH and Ops Manager to GCP](https://docs.pivotal.io/pivotalcf/2-0/customizing/gcp-om-deploy.html)
-to deploy Ops Manager.
+The sections below explain how to deploy and configure Ops Manager on GCP.
+
+### <a id='deploying-ops-man'></a>Deploying Ops Manager on GCP
+
+To deploy Ops Manager, follow the procedures in [Deploying BOSH and Ops Manager to GCP](https://docs.pivotal.io/pivotalcf/2-0/customizing/gcp-om-deploy.html).
 
 When you configure the **Networking** tab, replace the example values with the subnets and IP addresses you created in [Step 3](#create-networks)
 of this topic.
+
+### <a id='configuring-ops-man'></a>Configuring Ops Manager on GCP
+
+To configure Ops Manager, follow the procedures in [Configuring Ops Manager Director on GCP](https://docs.pivotal.io/pivotalcf/2-0/customizing/gcp-om-config.html).
+
+After you accessed Ops Manager using its fully qualified domain name (FQDN)
+that you set up in [Deploying BOSH and Ops Manager to GCP](https://docs.pivotal.io/pivotalcf/2-0/customizing/gcp-om-deploy.html), navigate to the the **Google Cloud Platform** tile within the Installation Dashboard and do the following:
+
+* In the **Google Config** section, use the key from the service account that you created in the GCP Console or create a new key.
+* In the **Director Config** section, ensure that the **Enable Post Deploy Scripts** checkbox is selected.   
+* When configuring the **Create Networks** section, refer to the following examples for information about setting up networks for your PKS deployment.
+<br><br>
+    Configuring a main network:
+
+    <table>
+      <tr>
+        <th>Field</th>
+        <th>Configuration</th>
+      </tr>
+      <tr>
+        <td>Name</td>
+        <td><code>pks-main</code></td>
+      </tr>
+      <tr>
+        <td>Service Network</td>
+        <td>Leave this checkbox unselected.</td>
+      </tr>
+      <tr>
+        <td>Google Network Name</td>
+        <td><code>MY-PCF-virt-net/pks-main-us-east1/us-east1</code></td>
+      </tr>
+      <tr>
+        <td>CIDR</td>
+        <td><code>192.168.40.0/22</code></td>
+      </tr>
+      <tr>
+        <td>Reserved IP Ranges</td>
+        <td><code>192.168.40.1-192.168.40.9</code></td>
+      </tr>
+      <tr>
+        <td>DNS</td>
+        <td><code>192.168.40.1</code></td>
+      </tr>
+      <tr>
+        <td>Gateway</td>
+        <td><code>192.168.40.1</code></td>
+      </tr>
+    </table>
+<br><br>
+    Configuring a service network:
+
+    <table>
+      <tr>
+        <th>Field</th>
+        <th>Configuration</th>
+      </tr>
+      <tr>
+        <td>Name</td>
+        <td><code>pks-services</code></td>
+      </tr>
+      <tr>
+        <td>Service Network</td>
+        <td>Select the checkbox.</td>
+      </tr>
+      <tr>
+        <td>Google Network Name</td>
+        <td><code>MY-PCF-virt-net/pks-services-us-east1/us-east1</code></td>
+      </tr>
+      <tr>
+        <td>CIDR</td>
+        <td><code>192.168.44.0/22</code></td>
+      </tr>
+      <tr>
+        <td>Reserved IP Ranges</td>
+        <td><code>192.168.44.1-192.168.44.9</code></td>
+      </tr>
+      <tr>
+        <td>DNS</td>
+        <td><code>192.168.44.1</code><br>
+        Alternatively, use <code>169.254.169.254</code>. Do not use <code>8.8.8.8</code>.</td>
+      </tr>
+      <tr>
+        <td>Gateway</td>
+        <td><code>192.168.44.1</code></td>
+      </tr>
+    </table>
+
+* In the **Resource Config** section, ensure that the **Internet Connected** checkboxes are not selected.
