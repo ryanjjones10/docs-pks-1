@@ -12,7 +12,7 @@ To deploy workloads to a Kubernetes cluster created using the PKS CLI, use the K
 
 **Current Version**: 1.0.0-build3
 
-## pks login
+##<a id='login'></a>pks login
 
 Login to PKS
 
@@ -41,9 +41,31 @@ pks login [flags]
   -u, --username string         Username
 ```
 
-## pks get-credentials
+##<a id='credentials'></a> pks get-credentials
 
-## pks cluster
+Allows you to connect to a cluster and use kubectl
+
+### Synopsis
+
+Run this command in order to update a kubeconfig file so you can access the cluster through kubectl
+
+```
+pks get-credentials <cluster-name> [flags]
+```
+
+### Examples
+
+```
+  pks get-credentials my-cluster
+```
+
+### Options
+
+```
+  -h, --help   help for get-credentials
+```
+
+##<a id='cluster'></a> pks cluster
 
 View the details of the cluster
 
@@ -70,7 +92,7 @@ pks cluster [flags]
 ```
 
 
-## pks clusters
+##<a id='clusters'></a> pks clusters
 
 Show all clusters created with PKS
 
@@ -95,7 +117,7 @@ pks clusters [flags]
       --json   Return the PKS-API output as json
 ```
 
-## pks create-cluster
+##<a id='create-cluster'></a> pks create-cluster
 Creates a kubernetes cluster, requires cluster name and an external host name
 
 ### Synopsis
@@ -122,7 +144,7 @@ pks create-cluster <cluster-name> [flags]
   -p, --plan string                Preconfigured plans. Run pks list-plans for more details
 ```
 
-## pks delete-cluster
+##<a id='delete'></a> pks delete-cluster
 
 Deletes a kubernetes cluster, requires cluster name
 
@@ -148,7 +170,7 @@ pks delete-cluster <cluster-name> [flags]
       --wait              Wait for the operation to finish
 ```
 
-## pks plans
+##<a id='plans'></a> pks plans
 
 View the preconfigured plans available
 
@@ -173,7 +195,7 @@ pks plans [flags]
       --json   Return the PKS-API output as json
 ```
 
-## pks resize 
+##<a id='resize'></a> pks resize 
 
 Increases the number of worker nodes for a cluster
 
@@ -203,7 +225,7 @@ pks resize <cluster-name> [flags]
 ```
 
 
-## pks logout
+##<a id='logut'></a> pks logout
 
 Logs user out of the PKS API
 
