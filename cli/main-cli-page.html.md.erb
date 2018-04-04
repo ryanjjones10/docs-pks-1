@@ -27,7 +27,7 @@ pks login [flags]
 ### Examples
 
 ```
-  pks login -a <API> -u <USERNAME> -p <PASSWORD> [--ca-cert <PATH TO CERT> | -k]
+pks login -a <API> -u <USERNAME> -p <PASSWORD> [--ca-cert <PATH TO CERT> | -k]
 ```
 
 ### Options
@@ -50,19 +50,19 @@ Allows you to connect to a cluster and use kubectl
 Run this command in order to update a kubeconfig file so you can access the cluster through kubectl
 
 ```
-pks get-credentials <cluster-name> [flags]
+pks get-credentials <CLUSTER-NAME> [flags]
 ```
 
 ### Examples
 
 ```
-  pks get-credentials my-cluster
+pks get-credentials my-cluster
 ```
 
 ### Options
 
 ```
-  -h, --help   help for get-credentials
+-h, --help   help for get-credentials
 ```
 
 ##<a id='cluster'></a> pks cluster
@@ -81,7 +81,7 @@ pks cluster [flags]
 ### Examples
 
 ```
-  pks cluster my-cluster
+pks cluster my-cluster
 ```
 
 ### Options
@@ -107,7 +107,7 @@ pks clusters [flags]
 ### Examples
 
 ```
-  pks clusters
+pks clusters
 ```
 
 ### Options
@@ -125,13 +125,13 @@ Creates a kubernetes cluster, requires cluster name and an external host name
 Create-cluster requires a cluster name, as well as an external hostname. External hostname can be a loadbalancer, from which you access your kubernetes API (aka, your cluster control plane)
 
 ```
-pks create-cluster <cluster-name> [flags]
+pks create-cluster <CLUSTER-NAME> [flags]
 ```
 
 ### Examples
 
 ```
-  pks create-cluster my-cluster --external-hostname example.hostname --plan production
+pks create-cluster my-cluster --external-hostname example.hostname --plan production
 ```
 
 ### Options
@@ -153,13 +153,13 @@ Deletes a kubernetes cluster, requires cluster name
 Delete-cluster requires a cluster name.
 
 ```
-pks delete-cluster <cluster-name> [flags]
+pks delete-cluster <CLUSTER-NAME> [flags]
 ```
 
 ### Examples
 
 ```
-  pks delete-cluster my-cluster
+pks delete-cluster my-cluster
 ```
 
 ### Options
@@ -185,7 +185,7 @@ pks plans [flags]
 ### Examples
 
 ```
-  pks plans
+pks plans
 ```
 
 ### Options
@@ -205,13 +205,13 @@ Resize requires a cluster name, and the number of desired worker nodes. Users ca
 By default, the resize command prompts for interactive confirmation.
 
 ```
-pks resize <cluster-name> [flags]
+pks resize <CLUSTER-NAME> [flags]
 ```
 
 ### Examples
 
 ```
-  pks resize my-cluster --num-nodes 5
+pks resize my-cluster --num-nodes 5
 ```
 
 ### Options
@@ -240,11 +240,11 @@ pks logout [flags]
 ### Examples
 
 ```
-  pks logout 
+pks logout 
 ```
 
 ### Options
 
 ```
-  -h, --help   help for logout
+-h, --help   help for logout
 ```
