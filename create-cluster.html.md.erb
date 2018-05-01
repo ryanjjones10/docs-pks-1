@@ -85,7 +85,7 @@ Before completing this procedure, create a GCE load balancer and related firewal
 2. Enter `pks list-plans`.
 3. Choose a plan. This is the plan on which you will create a cluster with a GCE load balancer.
 <p class="note"><strong>Note</strong>: You must have already created a GCE load balancer before continuing this procedure.</p>
-4. Create a cluster on this plan and connect the load balancer you created in [Configure a GCE Load Balancer for PKS Clusters](./gce-cluster-load-balancer.html). Example code follows: `pks create-cluster YOUR-CLUSTER-NAME --external-hostname YOUR-LOAD-BALANCER-IP --plan small --num-nodes 3`.
+4. Create a cluster on this plan and connect the load balancer you created in [Configure a GCE Load Balancer for PKS Clusters](./gce-cluster-load-balancer.html). Example code follows: `pks create-cluster YOUR-CLUSTER-NAME --external-hostname YOUR-LOAD-BALANCER-IP --plan small --num-nodes 3`
 4. Wait while the cluster is created. To check the creation progress, enter the following command in the BOSH CLI of the Ops Manager instance: `bosh -e pks task`.
 <p class="note"><strong>Note</strong>: This errand may run after the deployment. Depending on what other tasks you have queued, several BOSH tasks may run at this time.
 
