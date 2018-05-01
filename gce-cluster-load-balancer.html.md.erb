@@ -36,7 +36,7 @@ The example below explains how to create a load balancer for your cluster and us
 
 ##<a id="firewall"></a> Creating Firewall Rules for Load Balancers
 
-Creating a firewall rule for the load balancer
+Creating a firewall rule for the load balancer essentially whitelists the load balancer IP. This ensures that traffic attempting to move through the load balancer and into the cluster is permitted access.
 
 1. In the Google Cloud Platform sidebar menu, select **VPC Network** > **Firewall Rules**.
 1. Click **Create Firewall Rule**. The *Create a firewall rule* menu opens.
@@ -50,36 +50,4 @@ Creating a firewall rule for the load balancer
 1. Specify any other configuration options you require and press **Done** to complete frontend configuration.
 1. Click **Create**.
 
-For this firewall rule to affect cluster API traffic, you must add the `your-pks-cluster-api-tag` network tag to the master instance of your cluster. You can only apply that tag after creating a new cluster in [LINK TO CLUSTER CONFIG DOCS](LINK). 
-
-
-##<a id="cluster-create-lb"></a>Creating a Cluster with a GCE Load Balancer
-
-In order to use a GCE load balancer with a cluster, you must specify that you wish to use a load balancer during cluster creation. You cannot add a load balancer to an existing cluster. 
-
-Before completing this procedure, create a GCE load balancer and related firewall rules by following the procedures in [Configure a GCE Load Balancer for PKS Clusters](./gce-cluster-load-balancer.html).
-
-1. Log in to the PKS CLI.
-2. Enter `pks list-plans`.
-3. Choose a plan. This is the plan on which you will create a cluster with a GCE load balancer.
-<p class="note"><strong>Note</strong>: You must have already created a GCE load balancer before continuing this procedure.</p>
-4. Create a cluster on this plan and connect the load balancer you created in [Configure a GCE Load Balancer for PKS Clusters](./gce-cluster-load-balancer.html). Example code follows: `pks create-cluster YOUR-CLUSTER-NAME --external-hostname YOUR-LOAD-BALANCER-IP --plan small --num-nodes 3`.
-4. Wait while the cluster is created. To check the creation progress, enter the following command in the BOSH CLI of the Ops Manager instance: `bosh -e pks task`.
-<p class="note"><strong>Note</strong>: This errand may run after the deployment. Depending on what other tasks you have queued, several BOSH tasks may run at this time.
-
-##<a id="lb-connect"></a> Connecting a GCE Load Balancer to a Cluster
-
-Once you have created a new cluster with a load balancer, you must connect the load balancer to the master instance of the cluster. This ensures that traffic is distributed when accessing the cluster, and that any firewall rules you created take effect.
-
-1. Search for the master VM ID by either entering `bosh -e pks vms` or logging into the GCP Console and navigating to **Compute Engine** > **VM Instances**, and searching for the master instance there.
-1. In Google Compute Engine, navigate to **Network services** > **Load balancing**. 
-1. Click the name of the load balancer you created in the [Creating Load Balancers for PKS Clusters](gce-cluster-load-balancer.html/#create) section of *Configure a GCE Load Balancer for PKS Clusters*. The *Load balancer details* screen opens.
-1. Click **Edit**.
-1. In the *Backend configuration* panel, add the ???????????.
-1. In the Google Compute Engine, navigate to **VM Instances** and search for the master instance.
-1. Click the name of the master instance.
-1. Click **Edit**.
-1. In the *Network tags* section, add the `your-pks-cluster-api-tag` network tag. This funnels traffic through the load balancer and into the cluster.
-1. Click **Save**.
-
-Use IP of LB on PKS CLI to tell PKS to include LB IP as a trusted IP, which funnels traffic through the LB and across the cluster.
+For this firewall rule to affect cluster API traffic, you must add the `your-pks-cluster-api-tag` network tag to the master instance of your cluster. You can only apply that tag after creating a new cluster with a GCE load balancer in [Create a Cluster](create-cluster.html). 
