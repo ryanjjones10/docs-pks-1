@@ -89,20 +89,31 @@ Before completing this procedure, create a GCE load balancer and related firewal
 4. Wait while the cluster is created. To check the creation progress, enter the following command in the BOSH CLI of the Ops Manager instance: `bosh -e pks task`.
 <p class="note"><strong>Note</strong>: This errand may run after the deployment. Depending on what other tasks you have queued, several BOSH tasks may run at this time.
 
-##<a id="lb-connect"></a> Connecting a GCE Load Balancer to a Cluster
+##<a id="lb-connect"></a> Connecting a GCP Load Balancer to a Cluster
 
 Once you have created a new cluster with a load balancer, you must connect the load balancer to the master instance of the cluster. This ensures that traffic is distributed when accessing the cluster, and that any firewall rules you created take effect.
 
+This process takes two steps: 
+* Adding the network tag you created in [Creating Firewall Rules for Load Balancers](gcp-cluster-load-balancer.hmtl#firewall) section of *Configure a GCP Load Balancer for PKS Clusters* to the master instance of your cluster, and 
+* Adding the instance to the load balancer you created in the [Creating GCP Load Balancers for PKS Clusters](./gcp-cluster-load-balancer.html#create) section of *Configure a GCP Load Balancer for PKS Clusters*.
+
+###<a id="network-tag"></a> Adding the Network Tag to the Master Instance
+
 1. Search for the master VM ID by either entering `bosh -e pks vms` or logging into the GCP Console and navigating to **Compute Engine** > **VM Instances**, and searching for the master instance there.
-1. In Google Compute Engine, navigate to **Network services** > **Load balancing**. 
-1. Click the name of the load balancer you created in the [Creating Load Balancers for PKS Clusters](gce-cluster-load-balancer.html/#create) section of *Configure a GCE Load Balancer for PKS Clusters*. The *Load balancer details* screen opens.
-1. Click **Edit**.
-1. In the *Backend configuration* panel, add the ???????????.
-1. In the Google Compute Engine, navigate to **VM Instances** and search for the master instance.
 1. Click the name of the master instance.
 1. Click **Edit**.
-1. In the *Network tags* section, add the `your-pks-cluster-api-tag` network tag. This funnels traffic through the load balancer and into the cluster.
+1. In the *Network tags* section, enter the `your-pks-cluster-api-tag` network tag and press **Enter**. Adding this network tag funnels traffic through the load balancer and into the cluster.
 1. Click **Save**.
+
+###<a id="network-tag"></a> Adding the Master Instance to the GCP Load Balancer
+
+1. In Google Compute Engine, navigate to **Network services** > **Load balancing**. 
+1. Click the name of the load balancer you created in the [Creating Load Balancers for PKS Clusters](gcp-cluster-load-balancer.html/#create) section of *Configure a GCP Load Balancer for PKS Clusters*. The *Load balancer details* screen opens.
+1. Click **Edit**.
+1. Click into the **Backend configuration** panel.
+1. In the **Backends** section, click **Select existing instances**.
+1. Type or select the master instance from the dropdown menu.
+1. Click **Update**.
 
 ##<a id="next"></a> Next Steps
 
