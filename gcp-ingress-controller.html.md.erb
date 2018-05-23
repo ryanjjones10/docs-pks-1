@@ -1,0 +1,250 @@
+---
+title: Use an Ingress Controller on GCP
+owner: PKS
+---
+
+<strong><%= modified_date %></strong>
+
+This topic describes how to route traffic to your Pivotal Container Service (PKS)-deployed Kubernetes cluster on Google Cloud Platform (GCP) using an ingress controller.
+
+This topic uses the NGINX ingress controller as an example.
+You can install this or any other open source ingress controller using [Helm](./helm.html).
+
+For more information about ingress controllers, see [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) in the Kubernetes documentation.
+
+## <a id="about"></a>When to Use an Ingress Controller
+
+You can use an ingress controller to route traffic into your PKS-deployed Kubernetes cluster.
+
+Using an ingress controller instead of a load balancer allows the following:
+
+- TLS termination inside the cluster instead of the load balancer ingress
+  <p class="note"><strong>Note</strong>: If you terminate TLS inside the cluster, you can manage certificates inside the Kubernetes cluster instead of in GCP. For example, you can automate managing certificates inside clusters using <a href="https://cert-manager.readthedocs.io/en/latest/">cert-manager</a>.</p>
+- Name-based virtual hosting
+- Proxy paths to internal services
+
+For more information, see the [NGINX Ingress Controller](https://kubernetes.github.io/ingress-nginx/) documentation.
+
+##<a id="prerequisite"></a> Prerequisites
+
+Before you begin the procedures in this topic, complete the following prerequisite steps:
+
+1. Configure the Helm package manager.
+For more information, see [Using Helm with PKS](helm.html).
+
+1. To deploy an ingress controller, you must have a user account with cluster admin privileges.
+For more information, see the [Grant Cluster Access to a User
+](manage-users.html#uaa-scopes) section of _Manage Users in UAA_.
+
+##<a id="routing"></a> Step 1: Configure Routing to the Ingress Controller
+
+In this section, use the GCP console to reserve an IP address and configure a DNS record for the ingress controller.
+
+You can choose to use an external tool to manage DNS records for ingresses.
+For example, you can use <a href="https://github.com/kubernetes-incubator/external-dns/">external-dns</a> to manage DNS records inside Kubernetes clusters automatically.
+
+###<a id="reserve-ip"></a> Reserve an IP Address
+
+1. Navigate to the [GCP console](https://console.cloud.google.com/).
+1. In the sidebar menu, select **VPC network** > **External IP addresses**.
+1. Click **Reserve Static Address**.
+1. Under **Name**, enter a name for your reserved IP address. For example, `pks-ingress-ip`.
+1. (Optional) Under **Description**, enter a description for your reserved IP address.
+1. Select a **Network Service Tier**.
+1. Under **IP version**, select **IPv4**.
+1. Select a **Type**.
+1. Under **Region**, select the region where your Kubernetes clusters are deployed.
+1. Under **Attached to**, leave **None** selected.
+1. Click **Reserve**.
+
+###<a id="configure-dns"></a> Configure DNS
+
+1. In the sidebar menu, select **Network Services** > **Cloud DNS**.
+1. Click the **Zone name** you created when deploying Ops Manager. See [Step 3: Create the Ops Manager VM Instance](gcp-om-deploy.html#start-vm) for more information.
+1. Click **Add record set**.
+1. Under **DNS Name**, enter a fully qualified domain name (FQDN). For example, `ingress.pks.example.com`.
+1. Under **Resource Record Type**, select **A**.
+1. Leave the default values for **TTL** and **TTL Unit**.
+1. Under **IPv4 Address**, enter the IP address you reserved in the previous section.
+1. Click **Create**.
+
+##<a id="deploy"></a> Step 2: Deploy the Ingress Controller
+
+Typically an Ingress Controller is deployed by a cluster administrator and used
+by cluster users via an [Ingress Resource](https://kubernetes.io/docs/concepts/services-networking/ingress/#the-ingress-resource).
+In this example we also deploy the Ingress Controller into a separate namespace `ingress`.
+
+
+
+Run the following command, replacing `YOUR-RESERVED-IP` with the IP address you reserved in the [Reserve an IP Address](#reserve-ip) step:
+
+```sh
+$ helm install stable/nginx-ingress \
+  --name nginx \
+  --set rbac.create=true \
+  --namespace ingress \
+  --set controller.service.loadBalancerIP=YOUR-RESERVED-IP \
+  --set controller.config.proxy-buffer-size=16k
+```
+
+This will:
+
+- Create a new Ingress Controller named `nginx` in the `ingress` namespace.
+- Create a TCP loadbalancer on GCP using the reserved IP address.
+- Sets custom configuration for the Ingress Controller.
+  - Internally, this Ingress Controller uses [nginx](http://nginx.org/) and you can configure
+    different nginx settings, in the example above we change
+    [`proxy_buffer_size`](http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffer_size)
+    to 16k.
+
+A successfull deployment should eventually (it may take some time to setup the `service`) look something like this:
+
+```sh
+$ kubectl --namespace ingress get all
+NAME                                         DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+deploy/nginx-nginx-ingress-controller        1         1         1            1           1d
+deploy/nginx-nginx-ingress-default-backend   1         1         1            1           1d
+
+NAME                                                DESIRED   CURRENT   READY     AGE
+rs/nginx-nginx-ingress-controller-8b548bd79         1         1         1         1d
+rs/nginx-nginx-ingress-default-backend-864c9484bf   1         1         1         1d
+
+NAME                                         AGE
+deploy/nginx-nginx-ingress-controller        1d
+deploy/nginx-nginx-ingress-default-backend   1d
+
+NAME                                                AGE
+rs/nginx-nginx-ingress-controller-8b548bd79         1d
+rs/nginx-nginx-ingress-default-backend-864c9484bf   1d
+
+NAME                                                      READY     STATUS    RESTARTS   AGE
+po/nginx-nginx-ingress-controller-8b548bd79-97lwp         1/1       Running   0          1d
+po/nginx-nginx-ingress-default-backend-864c9484bf-7tkqg   1/1       Running   0          1d
+
+NAME                                      TYPE           CLUSTER-IP       EXTERNAL-IP     PORT(S)                      AGE
+svc/nginx-nginx-ingress-controller        LoadBalancer   10.100.200.205   <reserved-IP>   80:31445/TCP,443:31479/TCP   1d
+svc/nginx-nginx-ingress-default-backend   ClusterIP      10.100.200.88    <none>          80/TCP                       1d
+```
+
+By default this Ingress Controller create a Load Balaancer listening on the ports 80 and 443, make sure you have
+[configured your firewall](#firewall) to allow traffic to those ports.
+
+###<a id="create-ingress-deploy-app"></a> Deploy an example application and expose it via the Ingress Controller
+
+We want to serve a simple example application on https. We therefore need to setup certificates for the Ingress Controller to use.
+In this example we will just use a self signed certificate.
+
+<p class="note">
+<strong>Note</strong>: Instead of manually managing certifiactes you could look
+into <a href="https://cert-manager.readthedocs.io/en/latest/">cert-manager</a>
+or similar tools which automate the certificate creation and management for
+you.
+</p>
+
+#### Prepare the self signed certificate
+
+1. Create a self signed certificate:
+<pre class="highlight shell"><code>$ openssl req -x509 \
+    -nodes -newkey rsa:4096 \
+    -keyout key.pem \
+    -out cert.pem \
+    -days 365 \
+    -subj "/C=US/ST=Oregon/L=Portland/O=Company Name/OU=Org/CN=&lt;example.ingress.&lt;Opsmanager domain&gt;&gt;"
+</code></pre>
+1. Encode the certificate and key into base64 for later use in the ingress spec:
+<pre class="highlight shell"><code>$ base64 ./key.pem | tee ./key.pem.base64
+$ base64 ./cert.pem | tee ./cert.pem.base64
+</code></pre>
+
+#### Deploy an example application using the self signed cert and routing traffic via Ingress
+
+Use the follwing spec and apply it via `kubectl apply -f`
+
+```yaml
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: example-ingress
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: example-ingress
+    spec:
+      containers:
+      - name: example-ingress
+        image: paulbouwer/hello-kubernetes:1.4
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: example-ingress
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 8080
+  selector:
+    app: example-ingress
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+  name: example-ingress
+spec:
+  rules:
+  - host: example.ingress.<Opsmanager domain>
+    http:
+      paths:
+      - backend:
+          serviceName: example-ingress
+          servicePort: 8080
+  tls:
+  - hosts:
+    - example.ingress.<Opsmanager domain>
+    secretName: example-ingress-certs
+---
+kind: Secret
+metadata:
+  name: example-ingress-certs
+type: Opaque
+apiVersion: v1
+data:
+  tls.crt: <file content of cert.pem.base64>
+  tls.key: <file content of key.pem.base64>
+```
+
+`kubectl get all` should show something like this:
+
+```
+NAME                     DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+deploy/example-ingress   2         2         2            2           25m
+
+NAME                            DESIRED   CURRENT   READY     AGE
+rs/example-ingress-85fff995df   2         2         2         25m
+
+NAME                     AGE
+deploy/example-ingress   25m
+
+NAME                            AGE
+rs/example-ingress-85fff995df   25m
+
+NAME                                  READY     STATUS    RESTARTS   AGE
+po/example-ingress-85fff995df-52gsf   1/1       Running   0          25m
+po/example-ingress-85fff995df-zvcb2   1/1       Running   0          25m
+
+NAME                  TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
+svc/example-ingress   ClusterIP   10.100.200.191   <none>        80/TCP    25m
+```
+
+You should now be able to point your browser to `https://example.ingress.<Opsmanager domain>` and see:
+
+- the self signed certificate being used
+- TLS being terminated at the NGINX Ingress Controller
+- the trafic going through the GCP load balancer, the NGINX Ingress Controller as defined by the ingress spec, the service, and finally hit the pods
